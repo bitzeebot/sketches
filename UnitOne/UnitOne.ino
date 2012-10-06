@@ -149,6 +149,7 @@ void dispatchCommand(int code) {
       case REMOTE_2_1:
       case REMOTE_2_2:
         Serial.println("2");
+        wiggle();
         break;
       case REMOTE_3_1:
       case REMOTE_3_2:
@@ -157,12 +158,12 @@ void dispatchCommand(int code) {
       case REMOTE_4_1:
       case REMOTE_4_2:
         Serial.println("4");
-        spinRight(2000);
+        spinRight(4000);
         break;
       case REMOTE_5_1:
       case REMOTE_5_2:
         Serial.println("5");
-        spinLeft(2000);
+        spinLeft(4000);
         break;
       case REMOTE_6_1:
       case REMOTE_6_2:
@@ -224,12 +225,13 @@ void dispatchCommand(int code) {
       case REMOTE_STOP_2:
         Serial.println("STOP");
         stopSound();
-        rightStop();
-        leftStop();
+        powerStop();
         break;
       case REMOTE_PAUSE_1:
       case REMOTE_PAUSE_2:
         Serial.println("PAUSE");
+        rightStop();
+        leftStop();
         break;
       case REMOTE_PWR_1:
       case REMOTE_PWR_2:
@@ -288,23 +290,17 @@ void figureEight() {
   rightStop();
 }
 
-/*
 void wiggle() {
-  fwdSpeed = random(FULL, FULL-20);  
-  bwdSpeed = random(FULL, FULL-20);  
+  fwdSpeed(random(FULL-20, FULL));  
+  bwdSpeed(random(FULL-20, FULL));  
   for (int i=0; i < 10; i++) {
-  stop(); 
-  delay(random(150,220)); 
-  spinLeft(); 
-  delay(random(150,220)); 
-  stop();
-  delay(random(150,220));
-  spinRight();
-  delay(random(150,220));
+    spinLeft(random(150,220)); 
+    delay(random(150,220)); 
+    spinRight(random(150,220));
+    delay(random(150,220));
   }
   stop();
 }
-*/
 
 void waddle() {
   fwdSpeed(FULL-50);
@@ -353,12 +349,36 @@ void waddleRight() {
 
 
 int direction = 0;
+int rightFwdSpeed = 128;
+int leftFwdSpeed = 128;
+int rightBwdSpeed = 128;
+int leftBwdSpeed = 128;
+
+
+
+void powerStop() {
+  if (direction > 0) {
+    bwdSpeed(FULL);
+    bwd(200);
+  }
+  else if (direction < 0) {
+    fwdSpeed(FULL);
+    fwd(200);
+  }
+  stop();
+  direction = 0;
+  fwdSpeed(SLOW);
+  bwdSpeed(SLOW);
+}
+
+void stop() {
+  leftStop();
+  rightStop();
+  direction = 0;
+}
 
 void fwd(int t) {
   Serial.println("fwd()");
-  if (direction > 0) {
-    fwdFaster();
-  }
   rightFwd();
   leftFwd();
   direction = 1;
@@ -410,26 +430,29 @@ void reverseDirection() {
   }
 }
 
-int rightFwdSpeed = 128;
-int leftFwdSpeed = 128;
-int rightBwdSpeed = 128;
-int leftBwdSpeed = 128;
-
-
 const int rightFwdCalibration = 0;
 const int leftFwdCalibration = 0;
 const int speedIncr = 10;
 
 void fwdFaster() {
-  if (direction > 0) {
+  if (rightFwdSpeed > FULL || leftFwdSpeed > FULL) {
+    // do nothing
+  }
+  else if (direction > 0) {
     leftFwdSpeed -= speedIncr;
     rightFwdSpeed += speedIncr;
     fwd(0);
   }
   else if (direction < 0) {
-    leftBwdSpeed += speedIncr;
-    rightBwdSpeed -= speedIncr;
-    fwd(0);
+    if (leftBwdSpeed > SLOW) {
+      leftBwdSpeed += speedIncr;
+      rightBwdSpeed -= speedIncr;
+      bwd(0);
+    }
+    else {
+      fwdSpeed(SLOW);
+      fwd(0);
+    }
   }
   else {
     fwdSpeed(SLOW);
@@ -438,34 +461,50 @@ void fwdFaster() {
 }
 
 void bwdFaster() {
-  if (direction > 0) {
-    leftFwdSpeed += speedIncr;
-    rightFwdSpeed -= speedIncr;
+  if (rightBwdSpeed > FULL || leftBwdSpeed > FULL) {
+    // do nothing
+  }
+  else if (direction > 0 && rightFwdSpeed > SLOW) {
+    if (leftBwdSpeed > SLOW) {
+      bwdSpeed(SLOW);
+      bwd(0);
+    }
+    else {
+      leftFwdSpeed += speedIncr;
+      rightFwdSpeed -= speedIncr;
+      fwd(0);
+    }
   }
   else if (direction < 0) {
     leftBwdSpeed -= speedIncr;
     rightBwdSpeed += speedIncr;
+    bwd(0);
   }
   else {
-    bwd(SLOW);
+    bwdSpeed(SLOW);
+    bwd(0);
   }
 }
 
 void fwdSpeed(int n) {
+  Serial.println("fwdSpeed");
   leftFwdSpeed = 255 - n + leftFwdCalibration;
   rightFwdSpeed = n - rightFwdCalibration;
+  Serial.println(leftFwdSpeed);
+  Serial.println(rightFwdSpeed);
 }
 
 void leftFwd() {
-  Serial.println("rightFwd()");
+  Serial.println("leftFwd()");
+  Serial.println(leftFwdSpeed);
   analogWrite(PIN_MTR_L1, leftFwdSpeed);
   digitalWrite(PIN_MTR_L2, HIGH);
   digitalWrite(PIN_MTR_EN, HIGH);
 }
 
-
-
 void rightFwd() {
+  Serial.println("rightFwd()");
+  Serial.println(rightFwdSpeed);
   analogWrite(PIN_MTR_L3, rightFwdSpeed);
   digitalWrite(PIN_MTR_L4, LOW);
   digitalWrite(PIN_MTR_EN, HIGH);
@@ -475,14 +514,14 @@ const int leftBwdCalibration = 0;
 const int rightBwdCalibration = -20;
 
 void bwdSpeed(int n) {
-  leftFwdSpeed = n + leftBwdCalibration;
-  rightFwdSpeed = 255 - n - rightFwdCalibration;
+  rightBwdSpeed = n + leftBwdCalibration;
+  leftBwdSpeed = 255 - n - rightFwdCalibration;
 }
 
 
 
 void leftBwd() {
-  Serial.println("rightFwd()");
+  Serial.println("leftBwd()");
   analogWrite(PIN_MTR_L1, rightBwdSpeed);
   digitalWrite(PIN_MTR_L2, LOW);
   digitalWrite(PIN_MTR_EN, HIGH);
@@ -490,6 +529,7 @@ void leftBwd() {
 
 
 void rightBwd() {
+  Serial.println("leftBwd()");
   analogWrite(PIN_MTR_L3, leftBwdSpeed);
   digitalWrite(PIN_MTR_L4, HIGH);
   digitalWrite(PIN_MTR_EN, HIGH);
