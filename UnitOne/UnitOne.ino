@@ -1,3 +1,5 @@
+/* -*- Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 4 -*- */
+/* vi: set ts=4 sw=4 expandtab: (add to ~/.vimrc: set modeline modelines=5) */
 /*
    UnitOne
    Basic tests
@@ -127,17 +129,15 @@ void loop() {
   }
   if (fwdBump()) {
     playSound();
-    lightsOn(100, 1, 0, 0);
-    lightsOn(100, 0, 1, 0);
-    lightsOn(100, 0, 0, 1);
+    lightsFlash();
   }
   if (bwdBump()) {
     playSound();
-    lightsOn(100, 1, 1, 1);
-    lightsOn(100, 1, 1, 1);
-    lightsOn(100, 1, 1, 1);
+    lightsFlash();
   }  
 }
+
+int lastButton = 0;
 
 void dispatchCommand(int code) {
   switch (code) {
@@ -154,21 +154,22 @@ void dispatchCommand(int code) {
       case REMOTE_3_1:
       case REMOTE_3_2:
         Serial.println("3");
+        powerSlideRight();
         break;
       case REMOTE_4_1:
       case REMOTE_4_2:
         Serial.println("4");
-        spinRight(4000);
+        spinRight(3000);
         break;
       case REMOTE_5_1:
       case REMOTE_5_2:
         Serial.println("5");
-        spinLeft(4000);
+        spinLeft(3000);
         break;
       case REMOTE_6_1:
       case REMOTE_6_2:
         Serial.println("6");
-        powerSlide();
+        powerSlideLeft();
         break;
       case REMOTE_7_1:
       case REMOTE_7_2:
@@ -183,11 +184,12 @@ void dispatchCommand(int code) {
       case REMOTE_9_1:
       case REMOTE_9_2:
         Serial.println("9");
+        waddleBwd();
         break;
       case REMOTE_DOT_1:
       case REMOTE_DOT_2:
         Serial.println("DOT");
-        recordSound();
+        lastButton = REMOTE_DOT_1;
         break;
       case REMOTE_0_1:
       case REMOTE_0_2:
@@ -196,6 +198,9 @@ void dispatchCommand(int code) {
       case REMOTE_ENTER_1:
       case REMOTE_ENTER_2:
         Serial.println("ENTER");
+        if (lastButton == REMOTE_DOT_1) {
+            recordSound();
+        }
         break;
       case REMOTE_PLAY_1:
       case REMOTE_PLAY_2:
@@ -267,7 +272,15 @@ void lightsFlash() {
   lightsOn(300, 0, 0, 1);
 }
 
-void powerSlide() {
+void powerSlideLeft() {
+  fwdSpeed(FULL);
+  fwd(2000);
+  spinLeft(500);
+  bwd(300);
+}
+
+void powerSlideRight() {
+  fwdSpeed(FULL);
   fwd(2000);
   spinLeft(500);
   bwd(300);
@@ -277,15 +290,30 @@ void powerSlide() {
 void figureEight() {
   leftFwd();
   rightFwd();
-  delay(1000);
+  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
   leftStop();
-  delay(1000);
+  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
   leftFwd();
-  delay(1000);
+  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
   rightStop();
-  delay(1000);
+  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
   rightFwd();
-  delay(1000);
+  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
   leftStop();
   rightStop();
 }
@@ -300,47 +328,118 @@ void wiggle() {
     delay(random(150,220));
   }
   stop();
+  lightsFlash();
 }
 
 void waddle() {
-  fwdSpeed(FULL-50);
+  fwdSpeed(FULL);
   for (int i=0; i < 5; i++) {
     waddleLeft();
-    delay(1000);
+    //delay(1000);
+    lightsOn(300, 1, 0, 0);
+    lightsOn(300, 0, 1, 0);
+    lightsOn(300, 0, 0, 1);
     waddleRight();
-    delay(1000);
+    //delay(1000);
+    lightsOn(300, 1, 0, 0);
+    lightsOn(300, 0, 1, 0);
+    lightsOn(300, 0, 0, 1);
   }
 }
 
 void waddleLeft() {
   rightStop();
   leftFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 1, 0, 0);
   leftStop();
   rightFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
   rightStop();
   leftFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 0, 1);
   leftStop();
   rightFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
   rightStop();
 }
 
 void waddleRight() {
   leftStop();
   rightFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 1, 0, 0);
   rightStop();
   leftFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
   leftStop();
   rightFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 0, 1);
   rightStop();
   leftFwd();
-  delay(300);
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
+  leftStop();
+}
+
+void waddleBwd() {
+  fwdSpeed(FULL);
+  for (int i=0; i < 5; i++) {
+    waddleLeft();
+    //delay(1000);
+    lightsOn(300, 1, 0, 0);
+    lightsOn(300, 0, 1, 0);
+    lightsOn(300, 0, 0, 1);
+    waddleRight();
+    //delay(1000);
+    lightsOn(300, 1, 0, 0);
+    lightsOn(300, 0, 1, 0);
+    lightsOn(300, 0, 0, 1);
+  }
+}
+
+void waddleLeftBwd() {
+  rightStop();
+  leftBwd();
+  //delay(300);
+  lightsOn(300, 1, 0, 0);
+  leftStop();
+  rightBwd();
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
+  rightStop();
+  leftBwd();
+  //delay(300);
+  lightsOn(300, 0, 0, 1);
+  leftStop();
+  rightBwd();
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
+  rightStop();
+}
+
+void waddleRightBwd() {
+  leftStop();
+  rightBwd();
+  //delay(300);
+  lightsOn(300, 1, 0, 0);
+  rightStop();
+  leftBwd();
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
+  leftStop();
+  rightBwd();
+  //delay(300);
+  lightsOn(300, 0, 0, 1);
+  rightStop();
+  leftBwd();
+  //delay(300);
+  lightsOn(300, 0, 1, 0);
   leftStop();
 }
 
@@ -549,7 +648,6 @@ void lightsOn(int t, int r, int g, int b) {
   if (r != 0) digitalWrite(PIN_LED_R, HIGH);
   if (g != 0) digitalWrite(PIN_LED_G, HIGH);
   if (b != 0) digitalWrite(PIN_LED_B, HIGH);
-  delay(t);
   digitalWrite(PIN_LED_R, LOW);
   digitalWrite(PIN_LED_G, LOW);
   digitalWrite(PIN_LED_B, LOW);
