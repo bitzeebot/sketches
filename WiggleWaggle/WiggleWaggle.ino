@@ -35,7 +35,6 @@ void loop() {
   if (irrecv.decode(&results)) {
     Serial.println(results.value, HEX);
     stop();
-    delay(1000);  // delay to reduce inertia before changing directions
     switch (results.value) {
     case 0xFDBD8C7D:  // play
     case 0x09005059:
@@ -89,14 +88,14 @@ void forward() {
 }
 
 void slower() {
-  if (fwdSpeed < 255) {
+  if (fwdSpeed > FWD_INCR) {
     fwdSpeed -= FWD_INCR;
     forward();
   }
 }
 
 void faster() {
-  if (fwdSpeed > 0) {
+  if (fwdSpeed < FULL-FWD_INCR) {
     fwdSpeed += FWD_INCR;
     forward();
   }

@@ -89,11 +89,8 @@ const int PIN_MTR_L4  = 7;
 const int FULL = 255;
 const int SLOW = 150;
 
-
-
 IRrecv irrecv(PIN_RIR_RCV);
 decode_results results;
-
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -116,24 +113,24 @@ void setup() {
   pinMode(PIN_MTR_L3, OUTPUT);
   pinMode(PIN_MTR_L4, OUTPUT);
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   irrecv.enableIRIn(); // Start the receiver
 }
 
 void loop() {
   if (irrecv.decode(&results)) {
     int code = results.value & 0xFFFF;
-    //Serial.println(code, HEX);
+    Serial.println(code, HEX);
     dispatchCommand(code);
     irrecv.resume(); // Receive the next value
   }
-  if (fwdBump()) {
-    playSound();
-    lightsFlash();
-  }
   if (bwdBump()) {
     playSound();
-    lightsFlash();
+    waddleBwd();
+  }
+  if (fwdBump()) {
+    playSound();
+    waddle();
   }  
 }
 
@@ -210,15 +207,11 @@ void dispatchCommand(int code) {
       case REMOTE_REW_1:
       case REMOTE_REW_2:
         Serial.println("REW");
-        //bwdSpeed(SLOW);
-        //bwd(0);
         bwdFaster();
         break;
       case REMOTE_FF_1:
       case REMOTE_FF_2:
         Serial.println("FF");
-        //fwdSpeed(SLOW);
-        //fwd(0);
         fwdFaster();
         break;
       case REMOTE_REC_1:
@@ -287,30 +280,39 @@ void powerSlideRight() {
 }
 
 
-void figureEight() {
+void figureEight() {  
+  fwdSpeed(FULL);
   leftFwd();
   rightFwd();
-  //delay(1000);
   lightsOn(300, 1, 0, 0);
   lightsOn(300, 0, 1, 0);
   lightsOn(300, 0, 0, 1);
   leftStop();
-  //delay(1000);
   lightsOn(300, 1, 0, 0);
   lightsOn(300, 0, 1, 0);
   lightsOn(300, 0, 0, 1);
   leftFwd();
-  //delay(1000);
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
+  leftFwd();
+  rightFwd();
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
+  leftStop();
+  lightsOn(300, 1, 0, 0);
+  lightsOn(300, 0, 1, 0);
+  lightsOn(300, 0, 0, 1);
+  leftFwd();
   lightsOn(300, 1, 0, 0);
   lightsOn(300, 0, 1, 0);
   lightsOn(300, 0, 0, 1);
   rightStop();
-  //delay(1000);
   lightsOn(300, 1, 0, 0);
   lightsOn(300, 0, 1, 0);
   lightsOn(300, 0, 0, 1);
   rightFwd();
-  //delay(1000);
   lightsOn(300, 1, 0, 0);
   lightsOn(300, 0, 1, 0);
   lightsOn(300, 0, 0, 1);
@@ -332,15 +334,14 @@ void wiggle() {
 }
 
 void waddle() {
+  playSound();
   fwdSpeed(FULL);
-  for (int i=0; i < 5; i++) {
+  for (int i=0; i < 3; i++) {
     waddleLeft();
-    //delay(1000);
     lightsOn(300, 1, 0, 0);
     lightsOn(300, 0, 1, 0);
     lightsOn(300, 0, 0, 1);
     waddleRight();
-    //delay(1000);
     lightsOn(300, 1, 0, 0);
     lightsOn(300, 0, 1, 0);
     lightsOn(300, 0, 0, 1);
@@ -350,19 +351,15 @@ void waddle() {
 void waddleLeft() {
   rightStop();
   leftFwd();
-  //delay(300);
   lightsOn(300, 1, 0, 0);
   leftStop();
   rightFwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   rightStop();
   leftFwd();
-  //delay(300);
   lightsOn(300, 0, 0, 1);
   leftStop();
   rightFwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   rightStop();
 }
@@ -370,33 +367,28 @@ void waddleLeft() {
 void waddleRight() {
   leftStop();
   rightFwd();
-  //delay(300);
   lightsOn(300, 1, 0, 0);
   rightStop();
   leftFwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   leftStop();
   rightFwd();
-  //delay(300);
   lightsOn(300, 0, 0, 1);
   rightStop();
   leftFwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   leftStop();
 }
 
 void waddleBwd() {
-  fwdSpeed(FULL);
-  for (int i=0; i < 5; i++) {
-    waddleLeft();
-    //delay(1000);
+  playSound();
+  bwdSpeed(FULL);
+  for (int i=0; i < 3; i++) {
+    waddleLeftBwd();
     lightsOn(300, 1, 0, 0);
     lightsOn(300, 0, 1, 0);
     lightsOn(300, 0, 0, 1);
-    waddleRight();
-    //delay(1000);
+    waddleRightBwd();
     lightsOn(300, 1, 0, 0);
     lightsOn(300, 0, 1, 0);
     lightsOn(300, 0, 0, 1);
@@ -406,19 +398,15 @@ void waddleBwd() {
 void waddleLeftBwd() {
   rightStop();
   leftBwd();
-  //delay(300);
   lightsOn(300, 1, 0, 0);
   leftStop();
   rightBwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   rightStop();
   leftBwd();
-  //delay(300);
   lightsOn(300, 0, 0, 1);
   leftStop();
   rightBwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   rightStop();
 }
@@ -426,19 +414,15 @@ void waddleLeftBwd() {
 void waddleRightBwd() {
   leftStop();
   rightBwd();
-  //delay(300);
   lightsOn(300, 1, 0, 0);
   rightStop();
   leftBwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   leftStop();
   rightBwd();
-  //delay(300);
   lightsOn(300, 0, 0, 1);
   rightStop();
   leftBwd();
-  //delay(300);
   lightsOn(300, 0, 1, 0);
   leftStop();
 }
@@ -452,8 +436,6 @@ int rightFwdSpeed = 128;
 int leftFwdSpeed = 128;
 int rightBwdSpeed = 128;
 int leftBwdSpeed = 128;
-
-
 
 void powerStop() {
   if (direction > 0) {
@@ -506,7 +488,11 @@ void spinLeft(int t) {
   Serial.println("spinLeft()");
   rightFwd();
   leftBwd();
-  delay(t);
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
   rightStop();
   leftStop();
 }
@@ -515,7 +501,11 @@ void spinRight(int t) {
   Serial.println("spinRight()");
   leftFwd();
   rightBwd();
-  delay(t);
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
+  lightsFlash();
   rightStop();
   leftStop();
 }
@@ -617,8 +607,6 @@ void bwdSpeed(int n) {
   leftBwdSpeed = 255 - n - rightFwdCalibration;
 }
 
-
-
 void leftBwd() {
   Serial.println("leftBwd()");
   analogWrite(PIN_MTR_L1, rightBwdSpeed);
@@ -648,6 +636,7 @@ void lightsOn(int t, int r, int g, int b) {
   if (r != 0) digitalWrite(PIN_LED_R, HIGH);
   if (g != 0) digitalWrite(PIN_LED_G, HIGH);
   if (b != 0) digitalWrite(PIN_LED_B, HIGH);
+  delay(t);
   digitalWrite(PIN_LED_R, LOW);
   digitalWrite(PIN_LED_G, LOW);
   digitalWrite(PIN_LED_B, LOW);
